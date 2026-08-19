@@ -7,7 +7,10 @@ export function createNumpad(options: {
   value: number
   onChange: (value: number) => void
 }): HTMLElement {
-  let value = options.value
+  let value = Number.isFinite(options.value) && Number.isInteger(options.value) ? options.value : 0
+  // Finché non arriva la prima cifra o cancellazione, il valore mostrato è "selezionato":
+  // la prossima cifra lo sostituisce invece di concatenarsi, come su una calcolatrice.
+  let isInitial = true
 
   const display = el('div', { class: 'score score--big', dataset: { role: 'value' } }, String(value))
 
@@ -24,7 +27,9 @@ export function createNumpad(options: {
         class: 'btn',
         type: 'button',
         onClick: () => {
-          const next = Number(`${value}${digit}`)
+          const replacing = isInitial
+          isInitial = false
+          const next = Number(replacing ? digit : `${value}${digit}`)
           if (next > MAX_VALUE) return
           setValue(next)
         },
@@ -46,12 +51,26 @@ export function createNumpad(options: {
         {
           class: 'btn',
           type: 'button',
-          onClick: () => setValue(Math.floor(value / 10)),
+          onClick: () => {
+            isInitial = false
+            setValue(Math.floor(value / 10))
+          },
         },
         '⌫',
       ),
       digitButton('0'),
-      el('button', { class: 'btn', type: 'button', onClick: () => setValue(0) }, 'C'),
+      el(
+        'button',
+        {
+          class: 'btn',
+          type: 'button',
+          onClick: () => {
+            isInitial = false
+            setValue(0)
+          },
+        },
+        'C',
+      ),
     ),
   )
 }

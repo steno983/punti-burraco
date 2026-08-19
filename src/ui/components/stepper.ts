@@ -9,7 +9,7 @@ export function createStepper(options: {
 }): HTMLElement {
   const min = options.min ?? 0
   const max = options.max ?? 9
-  let value = options.value
+  let value = Math.min(max, Math.max(min, options.value))
 
   const display = el('span', { class: 'score', dataset: { role: 'value' } }, String(value))
 
