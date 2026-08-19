@@ -134,6 +134,20 @@ h2 { font-size: 1.15rem; margin: 24px 0 12px; }
   background: linear-gradient(to top, var(--bg) 70%, transparent);
 }
 
+/* Con `position: sticky` la barra resta agganciata al fondo per quasi tutto
+   lo scroll e si stacca solo negli ultimissimi pixel: senza uno spazio
+   riservato dopo di lei, l'ultimo elemento della schermata (es. la riga
+   dello 0 nel tastierino) resta coperto per gran parte dello scroll ed è
+   raggiungibile solo scrollando fino all'estremo fondo. Riservando qui
+   sotto lo spazio di una barra a due pulsanti (il suo padding interno, i
+   due tasti e lo spazio tra loro), la barra si libera con largo anticipo
+   e il contenuto risulta sempre scorribile fino a vederlo per intero,
+   sopra la barra. `:has()` applica la riserva solo alle schermate che
+   usano davvero `.sticky-actions`, senza toccarne la logica. */
+#app:has(.sticky-actions) {
+  padding-bottom: calc(24px + 12px + (var(--touch) * 2) + 10px + env(safe-area-inset-bottom));
+}
+
 input[type='text'] {
   width: 100%;
   min-height: var(--touch);
