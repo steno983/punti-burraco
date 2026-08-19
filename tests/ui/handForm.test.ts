@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { emptyEntry, handFormScreen } from '../../src/ui/screens/handForm'
+import { DISCARDED_ENTRIES_MESSAGE, emptyEntry, handFormScreen } from '../../src/ui/screens/handForm'
 import { createGame, type EngineDeps } from '../../src/engine/game'
 import { upsertGame } from '../../src/storage/repository'
 
@@ -140,5 +140,72 @@ describe('handFormScreen', () => {
     // Bob solista: la coppia è Ann e Cid, con una dichiarazione azzerata (entità nuova).
     expect(findPanel(container, 'Ann e Cid')).toBeTruthy()
     expect(findStepperRow(findPanel(container, 'Ann e Cid'), 'Burrachi puliti').textContent).toContain('0')
+  })
+
+  // Correggere una smazzata passata può spostare il confine di fase: una smazzata
+  // registrata in fase 2 si ritrova in fase 1, dove le entità sono solista e coppia.
+  // Le dichiarazioni che non corrispondono più vengono azzerate, e va detto.
+  it('avvisa quando le dichiarazioni non corrispondono più alle entità della fase', () => {
+    const game = createGame(
+      {
+        mode: 3,
+        players: [
+          { playerId: 'p1', name: 'Ann' },
+          { playerId: 'p2', name: 'Bob' },
+          { playerId: 'p3', name: 'Cid' },
+        ],
+        options: { semipulitoEnabled: true },
+      },
+      deps(),
+    )
+    upsertGame({
+      ...game,
+      hands: [
+        {
+          id: 'h1',
+          soloPlayerId: null,
+          entries: [
+            { ...emptyEntry('p1'), tablePoints: 120 },
+            { ...emptyEntry('p2'), tablePoints: 80 },
+            { ...emptyEntry('p3'), tablePoints: 60 },
+          ],
+          createdAt: '2026-08-19T12:00:00.000Z',
+        },
+      ],
+    })
+
+    const container = handFormScreen({ gameId: game.id, handId: 'h1' })
+    expect(container.textContent).not.toContain(DISCARDED_ENTRIES_MESSAGE)
+
+    findButton(container, 'Ann').click()
+
+    const alert = Array.from(container.querySelectorAll('.alert')).find(
+      (node) => node.textContent === DISCARDED_ENTRIES_MESSAGE,
+    )
+    // L'avviso è in pagina, non in una finestra del browser.
+    expect(alert).toBeTruthy()
+    expect(findPanel(container, 'Bob e Cid')).toBeTruthy()
+
+    // Resta visibile anche dopo un'interazione che ridisegna la schermata.
+    findButton(findPanel(container, 'Ann'), 'Ha chiuso').click()
+    expect(container.textContent).toContain(DISCARDED_ENTRIES_MESSAGE)
+  })
+
+  it('non avvisa quando non si perde nulla', () => {
+    const game = createGame(
+      {
+        mode: 2,
+        players: [
+          { playerId: 'p1', name: 'Ann' },
+          { playerId: 'p2', name: 'Bob' },
+        ],
+        options: { semipulitoEnabled: true },
+      },
+      deps(),
+    )
+    upsertGame(game)
+
+    const container = handFormScreen({ gameId: game.id })
+    expect(container.textContent).not.toContain(DISCARDED_ENTRIES_MESSAGE)
   })
 })

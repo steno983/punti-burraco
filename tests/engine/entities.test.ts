@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { resolveEntities, resolveLedgerAccounts } from '../../src/engine/entities'
+import {
+  MISSING_PLAYER_MESSAGE,
+  MISSING_SOLO_MESSAGE,
+  UNKNOWN_SOLO_MESSAGE,
+  resolveEntities,
+  resolveLedgerAccounts,
+} from '../../src/engine/entities'
 import type { Game } from '../../src/engine/types'
 
 function makeGame(mode: 2 | 3 | 4, playerNames: string[]): Game {
@@ -57,6 +63,28 @@ describe('resolveEntities', () => {
     expect(() => resolveEntities(makeGame(3, ['Ann', 'Bob', 'Cid']), 1, null)).toThrow(
       /solista/i,
     )
+  })
+
+  // I messaggi finiscono negli avvisi a schermo: devono spiegare cosa fare e non
+  // contenere identificativi interni.
+  it('spiega alla persona che gioca cosa fare quando manca il solista', () => {
+    expect(MISSING_SOLO_MESSAGE).toMatch(/in modifica/)
+    expect(MISSING_SOLO_MESSAGE).toMatch(/uno gioca contro due/)
+  })
+
+  it('non nomina identificativi interni quando il solista non è in partita', () => {
+    expect(() => resolveEntities(makeGame(3, ['Ann', 'Bob', 'Cid']), 1, 'p9')).toThrow(
+      UNKNOWN_SOLO_MESSAGE,
+    )
+    expect(UNKNOWN_SOLO_MESSAGE).not.toMatch(/p9|id/i)
+  })
+
+  it('non nomina identificativi interni quando un giocatore non è più in partita', () => {
+    // Solista sconosciuto ma con due altri giocatori: il nome del solista non si trova.
+    const game = makeGame(3, ['Ann', 'Bob'])
+    expect(() => resolveEntities(game, 1, 'p9')).toThrow(MISSING_PLAYER_MESSAGE)
+    expect(MISSING_PLAYER_MESSAGE).not.toMatch(/\bp\d\b/)
+    expect(MISSING_PLAYER_MESSAGE).toMatch(/in modifica/)
   })
 })
 

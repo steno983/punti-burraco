@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { replayGame, projectScores } from '../../src/engine/standings'
+import { MISSING_SOLO_MESSAGE, UNKNOWN_SOLO_MESSAGE } from '../../src/engine/entities'
 import type { Game, Hand, HandEntry, ScoringEntity } from '../../src/engine/types'
 
 function baseGame(mode: 2 | 3 | 4, hands: Hand[] = []): Game {
@@ -215,6 +216,7 @@ describe('replayGame — partita a 3 giocatori', () => {
     const game = baseGame(3, [hand('h1', [entry('p1'), entry('p2'), entry('p3')], null)])
     const progress = replayGame(game)
     expect(progress.hands[0].valid).toBe(false)
+    expect(progress.hands[0].issue).toBe(MISSING_SOLO_MESSAGE)
     expect(progress.hasIssues).toBe(true)
     expect(progress.standings.every((s) => s.points === 0)).toBe(true)
   })
@@ -241,7 +243,10 @@ describe('replayGame — smazzate incoerenti', () => {
     ])
     const progress = replayGame(game)
     expect(progress.hands[0].valid).toBe(false)
-    expect(progress.hands[0].issue).toBe('Solista p9 non presente nella partita')
+    // Il messaggio va a schermo: niente identificativi interni, e dice cosa fare.
+    expect(progress.hands[0].issue).toBe(UNKNOWN_SOLO_MESSAGE)
+    expect(progress.hands[0].issue).not.toMatch(/p9/)
+    expect(progress.hands[0].issue).toMatch(/in modifica/)
     expect(progress.hasIssues).toBe(true)
     expect(progress.standings.every((s) => s.points === 0)).toBe(true)
   })

@@ -1,8 +1,21 @@
 import type { Game, LedgerAccount, Phase, ScoringEntity } from './types'
 
+/**
+ * Messaggi rivolti all'utente: finiscono negli avvisi della schermata partita e
+ * del riepilogo, quindi niente identificativi interni e sempre l'azione da fare.
+ */
+export const MISSING_PLAYER_MESSAGE =
+  'Uno dei giocatori di questa smazzata non fa più parte della partita: apri la smazzata in modifica e reinserisci i punti.'
+
+export const MISSING_SOLO_MESSAGE =
+  'Questa smazzata ricade nella fase in cui uno gioca contro due, ma non risulta chi ha giocato da solo: può succedere quando la correzione di una smazzata precedente sposta il passaggio di fase. Apri la smazzata in modifica e indica di nuovo il solista.'
+
+export const UNKNOWN_SOLO_MESSAGE =
+  'Il giocatore indicato come solista non fa parte di questa partita: apri la smazzata in modifica e indica di nuovo chi ha giocato da solo.'
+
 function nameOf(game: Game, playerId: string): string {
   const player = game.players.find((p) => p.playerId === playerId)
-  if (!player) throw new Error(`Giocatore ${playerId} non presente nella partita`)
+  if (!player) throw new Error(MISSING_PLAYER_MESSAGE)
   return player.name
 }
 
@@ -33,11 +46,11 @@ export function resolveEntities(
   }
 
   if (!soloPlayerId) {
-    throw new Error('Nella fase 1 della partita a tre va indicato il solista')
+    throw new Error(MISSING_SOLO_MESSAGE)
   }
   const others = game.players.filter((p) => p.playerId !== soloPlayerId)
   if (others.length !== 2) {
-    throw new Error(`Solista ${soloPlayerId} non presente nella partita`)
+    throw new Error(UNKNOWN_SOLO_MESSAGE)
   }
   return [
     playerEntity(game, soloPlayerId),

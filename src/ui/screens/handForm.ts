@@ -12,6 +12,14 @@ import { appDeps } from '../deps'
 import { el } from '../dom'
 import { navigate, type Screen } from '../router'
 
+/**
+ * Avviso mostrato quando le dichiarazioni salvate non corrispondono più alle
+ * entità della fase corrente: succede correggendo una smazzata passata, che può
+ * spostare il confine di fase. Senza dirlo, i valori sparirebbero in silenzio.
+ */
+export const DISCARDED_ENTRIES_MESSAGE =
+  'Alcuni punti già inseriti in questa smazzata riguardavano una composizione diversa dei giocatori e sono stati azzerati: controllali e reinseriscili prima di salvare.'
+
 export function emptyEntry(entityId: string): HandEntry {
   return {
     entityId,
@@ -45,6 +53,7 @@ export const handFormScreen: Screen = (params) => {
 
   let soloPlayerId: string | null = editing?.soloPlayerId ?? null
   let entries: HandEntry[] = editing ? editing.entries.map((e) => ({ ...e })) : []
+  let discardedEntries = false
 
   const needsSolo = game.mode === 3 && phase === 1
 
@@ -52,8 +61,25 @@ export const handFormScreen: Screen = (params) => {
     return resolveEntities(game!, phase, soloPlayerId)
   }
 
+  /** Una dichiarazione che contiene qualcosa: scartarla in silenzio perderebbe dati. */
+  function hasData(entry: HandEntry): boolean {
+    return (
+      entry.closed ||
+      !entry.tookPot ||
+      entry.cleanBurracos > 0 ||
+      entry.semiCleanBurracos > 0 ||
+      entry.dirtyBurracos > 0 ||
+      entry.tablePoints > 0 ||
+      entry.handPoints > 0
+    )
+  }
+
   function syncEntries(): void {
     const ids = entities().map((e) => e.id)
+    // Una volta segnalata, la perdita resta a schermo finché si sta su questa smazzata.
+    if (entries.some((entry) => !ids.includes(entry.entityId) && hasData(entry))) {
+      discardedEntries = true
+    }
     entries = ids.map((id) => entries.find((e) => e.entityId === id) ?? emptyEntry(id))
   }
 
@@ -217,6 +243,7 @@ export const handFormScreen: Screen = (params) => {
     container.replaceChildren(
       el('h1', {}, editing ? 'Modifica smazzata' : 'Nuova smazzata'),
       ...(needsSolo ? [soloSelector()] : []),
+      ...(discardedEntries ? [el('div', { class: 'alert' }, DISCARDED_ENTRIES_MESSAGE)] : []),
       violationsContainer,
       ...currentEntities.map(entityPanel),
       el(
