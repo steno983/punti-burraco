@@ -1,5 +1,6 @@
 import './styles/app.css'
 import { registerRoute, startRouter } from './ui/router'
+import { installStorageAlert } from './ui/storageAlert'
 import { gameScreen } from './ui/screens/game'
 import { handFormScreen } from './ui/screens/handForm'
 import { handSummaryScreen } from './ui/screens/handSummary'
@@ -19,6 +20,7 @@ registerRoute('/giocatori', playersScreen)
 
 const container = document.querySelector<HTMLDivElement>('#app')
 if (!container) throw new Error('Contenitore #app non trovato')
+installStorageAlert(document.body)
 startRouter(container)
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {

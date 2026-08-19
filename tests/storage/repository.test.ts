@@ -1,6 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   STORAGE_KEY,
+  STORAGE_ERROR_MESSAGE,
+  onStorageError,
   loadState,
   saveState,
   upsertGame,
@@ -55,6 +57,39 @@ describe('saveState e loadState', () => {
     const state = loadState()
     expect(state.games).toHaveLength(1)
     expect(state.games[0].id).toBe('g1')
+  })
+})
+
+describe('saveState quando il dispositivo rifiuta di salvare', () => {
+  it('non solleva, riferisce il fallimento e avvisa chi è in ascolto', () => {
+    const messages: string[] = []
+    const stop = onStorageError((message) => messages.push(message))
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('QuotaExceededError')
+    })
+
+    let saved: boolean | null = null
+    expect(() => {
+      saved = saveState({ schemaVersion: 1, players: [], games: [makeGame('g1')] })
+    }).not.toThrow()
+    expect(saved).toBe(false)
+    expect(messages).toEqual([STORAGE_ERROR_MESSAGE])
+
+    vi.restoreAllMocks()
+    stop()
+  })
+
+  it('smette di avvisare chi si è disiscritto', () => {
+    const messages: string[] = []
+    onStorageError((message) => messages.push(message))()
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('QuotaExceededError')
+    })
+
+    saveState({ schemaVersion: 1, players: [], games: [] })
+    expect(messages).toEqual([])
+
+    vi.restoreAllMocks()
   })
 })
 

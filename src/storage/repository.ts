@@ -28,8 +28,38 @@ export function loadState(): PersistedState {
   }
 }
 
-export function saveState(state: PersistedState): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+/**
+ * Messaggio mostrato quando il dispositivo rifiuta il salvataggio: succede in
+ * navigazione privata su Safari (dove `setItem` fallisce sempre) e a spazio esaurito.
+ */
+export const STORAGE_ERROR_MESSAGE =
+  'Non è possibile salvare i dati su questo dispositivo: il browser potrebbe essere in navigazione privata oppure lo spazio disponibile è esaurito. Le partite registrate ora andranno perse chiudendo la pagina.'
+
+type StorageErrorListener = (message: string) => void
+
+const storageErrorListeners = new Set<StorageErrorListener>()
+
+/** Registra chi deve avvisare l'utente quando un salvataggio fallisce. Restituisce come disiscriversi. */
+export function onStorageError(listener: StorageErrorListener): () => void {
+  storageErrorListeners.add(listener)
+  return () => {
+    storageErrorListeners.delete(listener)
+  }
+}
+
+/**
+ * Salva sul dispositivo. Un fallimento non interrompe l'applicazione ma viene
+ * annunciato a chi si è registrato, così l'utente lo vede invece di trovarsi
+ * un'azione che non ha effetto.
+ */
+export function saveState(state: PersistedState): boolean {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    return true
+  } catch {
+    for (const listener of storageErrorListeners) listener(STORAGE_ERROR_MESSAGE)
+    return false
+  }
 }
 
 /** Inserisce o sostituisce una partita, restituendo lo stato aggiornato. */

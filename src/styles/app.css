@@ -113,6 +113,20 @@ h2 { font-size: 1.15rem; margin: 24px 0 12px; }
 }
 .alert--info { background: var(--surface-alt); color: var(--text); }
 
+/* Avviso di salvataggio impossibile: vive fuori dalle schermate e resta in vista
+   sopra qualunque contenuto finché non lo si chiude. */
+.storage-alert {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  max-width: 536px;
+  margin: 0 auto;
+  z-index: 10;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 45%);
+}
+.storage-alert .btn { margin-top: 12px; }
+
 .sticky-actions {
   position: sticky;
   bottom: 0;
