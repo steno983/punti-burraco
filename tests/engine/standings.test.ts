@@ -220,7 +220,52 @@ describe('replayGame — partita a 3 giocatori', () => {
   })
 })
 
+describe('replayGame — smazzate incoerenti', () => {
+  it('marca come da correggere una smazzata con una violazione bloccante', () => {
+    const game = baseGame(2, [
+      hand('h1', [
+        entry('p1', { closed: true, tookPot: true, cleanBurracos: 1, tablePoints: 300 }),
+        entry('p2', { closed: true, tookPot: true, cleanBurracos: 1, tablePoints: 300 }),
+      ]),
+    ])
+    const progress = replayGame(game)
+    expect(progress.hands[0].valid).toBe(false)
+    expect(progress.hands[0].issue).toBeTruthy()
+    expect(progress.hasIssues).toBe(true)
+    expect(progress.standings.every((s) => s.points === 0)).toBe(true)
+  })
+
+  it('marca come da correggere una smazzata di fase 1 con un solista inesistente', () => {
+    const game = baseGame(3, [
+      hand('h1', [entry('p2'), entry('pair:p1-p3')], 'p9'),
+    ])
+    const progress = replayGame(game)
+    expect(progress.hands[0].valid).toBe(false)
+    expect(progress.hands[0].issue).toBe('Solista p9 non presente nella partita')
+    expect(progress.hasIssues).toBe(true)
+    expect(progress.standings.every((s) => s.points === 0)).toBe(true)
+  })
+})
+
 describe('replayGame — fine partita', () => {
+  it('non dichiara finita la partita a tre giocatori quando tutti e tre i conti superano l obiettivo a pari punteggio', () => {
+    const game = baseGame(3, [
+      hand(
+        'h1',
+        [entry('p2', { tablePoints: 1000 }), entry('pair:p1-p3', { tablePoints: 0 })],
+        'p2',
+      ),
+      hand('h2', [
+        entry('p1', { tablePoints: 2005 }),
+        entry('p2', { tablePoints: 1005 }),
+        entry('p3', { tablePoints: 2005 }),
+      ]),
+    ])
+    const progress = replayGame(game)
+    expect(progress.finished).toBe(false)
+    expect(progress.winnerIds).toEqual([])
+  })
+
   it('dichiara finita la partita quando un conto supera l obiettivo', () => {
     const game = baseGame(2, [
       hand('h1', [entry('p1', { tablePoints: 2005 }), entry('p2', { tablePoints: 300 })]),
