@@ -1,8 +1,10 @@
 import './styles/app.css'
-import { el } from './ui/dom'
 import { registerRoute, startRouter } from './ui/router'
+import { homeScreen } from './ui/screens/home'
+import { newGameScreen } from './ui/screens/newGame'
 
-registerRoute('/', () => el('div', {}, el('h1', {}, 'Punti Burraco')))
+registerRoute('/', homeScreen)
+registerRoute('/nuova', newGameScreen)
 
 const container = document.querySelector<HTMLDivElement>('#app')
 if (!container) throw new Error('Contenitore #app non trovato')
