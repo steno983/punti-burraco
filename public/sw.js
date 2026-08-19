@@ -1,7 +1,22 @@
-const CACHE_NAME = 'punti-burraco-v1'
+// Le due righe seguenti sono riscritte dal passo di post-build (scripts/build-sw.mjs)
+// con l'impronta della build e l'elenco dei file prodotti, i cui nomi contengono un hash.
+// Senza quel passo (sviluppo, dove il service worker non è registrato) restano questi
+// valori: nessun precaricamento, ma il file resta valido e funzionante.
+const BUILD_ID = 'sviluppo'
+const PRECACHE = []
+
+const CACHE_NAME = `punti-burraco-${BUILD_ID}`
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(self.skipWaiting())
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE))
+      // Un file irraggiungibile non deve impedire l'installazione: quel che manca
+      // verrà messo in cache dal gestore di fetch alla prima richiesta utile.
+      .catch(() => undefined)
+      .then(() => self.skipWaiting()),
+  )
 })
 
 self.addEventListener('activate', (event) => {
