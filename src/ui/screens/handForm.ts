@@ -101,7 +101,8 @@ export const handFormScreen: Screen = (params) => {
       ? updateHand(game!, editing.id, input, appDeps)
       : addHand(game!, input, appDeps)
     upsertGame(updated)
-    navigate(`/partita/${game!.id}`)
+    const savedHandId = editing ? editing.id : updated.hands[updated.hands.length - 1].id
+    navigate(`/partita/${updated.id}/riepilogo/${savedHandId}`)
   }
 
   function soloSelector(): HTMLElement {
