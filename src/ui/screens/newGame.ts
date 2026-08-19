@@ -1,6 +1,6 @@
 import { createGame, type EngineDeps } from '../../engine/game'
 import type { Game, GameMode } from '../../engine/types'
-import { upsertGame, upsertPlayer } from '../../storage/repository'
+import { loadState, upsertGame, upsertPlayer } from '../../storage/repository'
 import { appDeps } from '../deps'
 import { el } from '../dom'
 import { navigate, type Screen } from '../router'
@@ -54,10 +54,26 @@ export function buildGameFromForm(
   return createGame({ mode: form.mode, players, teams, options: { semipulitoEnabled: form.semipulitoEnabled } }, deps)
 }
 
+/** Identificativo dell'elenco di suggerimenti condiviso da tutti i campi del nome. */
+const SUGGESTIONS_ID = 'rubrica-giocatori'
+
+/** Nomi già usati in altre partite, in ordine alfabetico. */
+export function suggestionNames(players: { name: string }[]): string[] {
+  return players.map((p) => p.name).sort((a, b) => a.localeCompare(b, 'it'))
+}
+
 /** Schermata a passi per la creazione di una nuova partita. */
 export const newGameScreen: Screen = () => {
   const form: NewGameForm = { mode: 4, names: ['', '', '', ''], teamSplit: [[0, 1], [2, 3]], semipulitoEnabled: true }
   const container = el('div', {})
+
+  // La rubrica dei giocatori già usati: la tastiera del telefono propone i nomi
+  // senza impedire di scriverne uno nuovo. È la stessa per tutti i campi.
+  const suggestions = el(
+    'datalist',
+    { id: SUGGESTIONS_ID },
+    ...suggestionNames(loadState().players).map((name) => el('option', { value: name })),
+  )
 
   const setMode = (mode: GameMode): void => {
     form.mode = mode
@@ -90,7 +106,20 @@ export const newGameScreen: Screen = () => {
     navigate(`/partita/${game.id}`)
   }
 
+  // Nodo stabile dell'anteprima squadre, ricreato a ogni draw(): si aggiorna sul
+  // posto mentre si digita, senza ricreare i campi di testo (che perderebbero il fuoco).
+  let teamsPreview: HTMLElement | null = null
+
+  const teamLabel = (a: number, b: number): string =>
+    `${form.names[a].trim() || `Giocatore ${a + 1}`} e ${form.names[b].trim() || `Giocatore ${b + 1}`}`
+
+  function refreshTeamsPreview(): void {
+    if (!teamsPreview) return
+    teamsPreview.replaceChildren(...form.teamSplit.map(([a, b]) => el('div', {}, teamLabel(a, b))))
+  }
+
   function draw(errors: string[] = []): void {
+    teamsPreview = null
     const modeButtons = ([2, 3, 4] as GameMode[]).map((mode) =>
       el(
         'button',
@@ -104,35 +133,39 @@ export const newGameScreen: Screen = () => {
     )
 
     const nameInputs = form.names.map((value, index) => {
-      const input = el('input', { type: 'text', value, placeholder: `Giocatore ${index + 1}` })
+      const input = el('input', {
+        type: 'text',
+        value,
+        placeholder: `Giocatore ${index + 1}`,
+        autocomplete: 'off',
+      })
+      input.setAttribute('list', SUGGESTIONS_ID)
       input.addEventListener('input', () => {
         form.names[index] = input.value
+        refreshTeamsPreview()
       })
       return el('div', { class: 'card' }, input)
     })
 
+    if (form.mode === 4) teamsPreview = el('div', {})
     const teamsSection =
-      form.mode === 4
+      teamsPreview !== null
         ? el(
             'div',
             { class: 'card' },
             el('div', { class: 'muted' }, 'Squadre'),
-            el(
-              'div',
-              {},
-              ...form.teamSplit.map(([a, b]) =>
-                el('div', {}, `${form.names[a] || `Giocatore ${a + 1}`} e ${form.names[b] || `Giocatore ${b + 1}`}`),
-              ),
-            ),
+            teamsPreview,
             el('button', { class: 'btn', type: 'button', onClick: rotateTeams }, 'Cambia accoppiamento'),
           )
         : null
+    refreshTeamsPreview()
 
     container.replaceChildren(
       el('h1', {}, 'Nuova partita'),
       ...errors.map((message) => el('div', { class: 'alert' }, message)),
       el('div', { class: 'grid-3' }, ...modeButtons),
       el('h2', {}, 'Giocatori'),
+      suggestions,
       ...nameInputs,
       ...(teamsSection ? [teamsSection] : []),
       el('h2', {}, 'Regole'),
