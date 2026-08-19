@@ -2,3 +2,6 @@ node_modules
 dist
 .DS_Store
 *.local
+
+# Cartella di lavoro degli strumenti di sviluppo
+.superpowers
