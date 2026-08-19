@@ -22,13 +22,22 @@ function chunk(type, data) {
   return Buffer.concat([length, typeAndData, crc])
 }
 
-/** Icona: fondo scuro, disco verde, carta bianca al centro. */
-function iconPixels(size) {
+/**
+ * Icona: fondo scuro, disco verde, carta bianca al centro.
+ *
+ * Le proporzioni di default (`discRadiusFactor` 0.42) disegnano il soggetto
+ * fino quasi al bordo, adatto alle icone "any". Per le icone "maskable" i
+ * launcher Android possono ritagliare qualunque cosa fuori dalla zona sicura
+ * (un cerchio centrato di raggio 0.4 rispetto al lato): passare fattori più
+ * piccoli (vedi `iconPixelsMaskable`) tiene il soggetto dentro quella zona,
+ * mentre lo sfondo continua a coprire l'intero riquadro.
+ */
+function iconPixels(size, { discRadiusFactor = 0.42, cardWidthFactor = 0.22, cardHeightFactor = 0.32 } = {}) {
   const rows = []
   const center = size / 2
-  const discRadius = size * 0.42
-  const cardWidth = size * 0.22
-  const cardHeight = size * 0.32
+  const discRadius = size * discRadiusFactor
+  const cardWidth = size * cardWidthFactor
+  const cardHeight = size * cardHeightFactor
 
   for (let y = 0; y < size; y++) {
     const row = [0]
@@ -47,7 +56,12 @@ function iconPixels(size) {
   return Buffer.concat(rows)
 }
 
-function png(size) {
+/** Stessa icona, ma ridimensionata perché il soggetto stia nella zona sicura "maskable". */
+function iconPixelsMaskable(size) {
+  return iconPixels(size, { discRadiusFactor: 0.36, cardWidthFactor: 0.19, cardHeightFactor: 0.27 })
+}
+
+function png(size, pixels) {
   const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
   const ihdr = Buffer.alloc(13)
   ihdr.writeUInt32BE(size, 0)
@@ -57,16 +71,17 @@ function png(size) {
   return Buffer.concat([
     signature,
     chunk('IHDR', ihdr),
-    chunk('IDAT', deflateSync(iconPixels(size))),
+    chunk('IDAT', deflateSync(pixels)),
     chunk('IEND', Buffer.alloc(0)),
   ])
 }
 
-for (const [size, name] of [
-  [192, 'public/icon-192.png'],
-  [512, 'public/icon-512.png'],
-  [180, 'public/apple-touch-icon.png'],
+for (const [size, name, pixels] of [
+  [192, 'public/icon-192.png', iconPixels(192)],
+  [512, 'public/icon-512.png', iconPixels(512)],
+  [180, 'public/apple-touch-icon.png', iconPixels(180)],
+  [512, 'public/icon-512-maskable.png', iconPixelsMaskable(512)],
 ]) {
-  writeFileSync(name, png(size))
+  writeFileSync(name, png(size, pixels))
   console.log(`Creata ${name}`)
 }
