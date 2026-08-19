@@ -116,8 +116,8 @@ export const handFormScreen: Screen = (params) => {
             class: soloPlayerId === player.playerId ? 'btn btn--primary' : 'btn',
             type: 'button',
             onClick: () => {
+              if (soloPlayerId === player.playerId) return
               soloPlayerId = player.playerId
-              entries = []
               draw()
             },
           },
@@ -133,9 +133,10 @@ export const handFormScreen: Screen = (params) => {
   }
 
   function entityPanel(entity: ScoringEntity): HTMLElement {
-    const entry = entries.find((e) => e.entityId === entity.id)!
+    let entry = entries.find((e) => e.entityId === entity.id)!
     if (isSolista(entity) && !entry.tookPot) {
-      entry.tookPot = true
+      entry = { ...entry, tookPot: true }
+      entries = entries.map((e) => (e.entityId === entity.id ? entry : e))
     }
     const total = el('span', { class: 'score score--big' }, String(scoreEntry(entry, game!.options).total))
     totalNodes.set(entity.id, total)
