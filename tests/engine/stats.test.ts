@@ -153,22 +153,34 @@ describe('computePlayerStats', () => {
     expect(ann.averageHandPoints).toBe(2100)
   })
 
-  it('gestisce bestHandPoints quando non ci sono smazzate valide', () => {
+  it('bestHandPoints trova il meno negativo quando tutte le smazzate sono negative', () => {
     const game = completedTwoPlayerGame('g6', 2100, 800)
     game.hands = [
       {
         id: 'g6-h1',
         soloPlayerId: null,
-        entries: [entry('p1', 0), entry('p2', 1500)],
+        entries: [
+          { ...entry('p1', 0), handPoints: 90, tookPot: false },
+          entry('p2', 1500),
+        ],
         createdAt: '2026-08-19T11:00:00.000Z',
+      },
+      {
+        id: 'g6-h2',
+        soloPlayerId: null,
+        entries: [
+          { ...entry('p1', 0), handPoints: 40, tookPot: true },
+          entry('p2', 500),
+        ],
+        createdAt: '2026-08-19T11:30:00.000Z',
       },
     ]
     game.status = 'completed'
     game.winnerIds = ['p2']
     const stats = computePlayerStats([game])
     const ann = stats.find((s) => s.playerId === 'p1')!
-    expect(ann.handsPlayed).toBe(1)
-    expect(ann.bestHandPoints).toBe(0)
-    expect(ann.averageHandPoints).toBe(0)
+    expect(ann.handsPlayed).toBe(2)
+    expect(ann.bestHandPoints).toBe(-40)
+    expect(ann.averageHandPoints).toBe(-115)
   })
 })
