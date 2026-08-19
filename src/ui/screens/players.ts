@@ -1,6 +1,7 @@
 import { computePlayerStats } from '../../engine/stats'
 import { loadState } from '../../storage/repository'
 import { el } from '../dom'
+import { plural } from '../format'
 import { navigate, type Screen } from '../router'
 
 export const playersScreen: Screen = () => {
@@ -19,7 +20,11 @@ export const playersScreen: Screen = () => {
       el(
         'div',
         { class: 'muted' },
-        `Vittorie ${Math.round(player.winRate * 100)}% · media ${player.averageHandPoints} punti a smazzata · miglior smazzata ${player.bestHandPoints}`,
+        `Vittorie ${Math.round(player.winRate * 100)}% · media ${plural(
+          player.averageHandPoints,
+          'punto',
+          'punti',
+        )} a smazzata · miglior smazzata ${player.bestHandPoints}`,
       ),
     ),
   )

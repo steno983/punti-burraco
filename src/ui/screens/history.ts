@@ -1,6 +1,7 @@
 import { replayGame } from '../../engine/standings'
 import { deleteGame, loadState } from '../../storage/repository'
 import { el } from '../dom'
+import { plural } from '../format'
 import { navigate, type Screen } from '../router'
 
 function formatDate(iso: string): string {
@@ -83,7 +84,7 @@ export const historyScreen: Screen = () => {
           el('strong', {}, `${game.mode} giocatori`),
           el('span', { class: 'muted' }, formatDate(game.updatedAt)),
         ),
-        winner ? el('div', {}, `Vince ${winner.label} con ${winner.points} punti`) : null,
+        winner ? el('div', {}, `Vince ${winner.label} con ${plural(winner.points, 'punto', 'punti')}`) : null,
         ...progress.standings.map((s) =>
           el('div', { class: 'row row--between' }, el('span', { class: 'muted' }, s.label), el('span', { class: 'score' }, String(s.points))),
         ),

@@ -1,6 +1,7 @@
 import { replayGame } from '../../engine/standings'
 import { loadState } from '../../storage/repository'
 import { el } from '../dom'
+import { plural } from '../format'
 import { navigate, type Screen } from '../router'
 
 export const homeScreen: Screen = () => {
@@ -13,7 +14,11 @@ export const homeScreen: Screen = () => {
     ? el(
         'div',
         { class: 'card' },
-        el('div', { class: 'muted' }, `Partita a ${ongoing.mode} giocatori · ${ongoing.hands.length} smazzate`),
+        el(
+          'div',
+          { class: 'muted' },
+          `Partita a ${ongoing.mode} giocatori · ${plural(ongoing.hands.length, 'smazzata', 'smazzate')}`,
+        ),
         ...replayGame(ongoing).standings.map((standing) =>
           el(
             'div',
