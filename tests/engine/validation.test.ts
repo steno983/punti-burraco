@@ -108,6 +108,17 @@ describe('validateHandEntries', () => {
     const violation = violations.find((v) => v.code === 'TABLE_POINTS_BELOW_BURRACOS')
     expect(violation).toBeDefined()
     expect(violation?.blocking).toBe(false)
+    expect(violation?.message).toContain('2 burrachi valgono almeno 70 punti di carte.')
     expect(hasBlockingViolations(violations)).toBe(false)
+  })
+
+  it('usa il singolare nel messaggio quando il burraco dichiarato è uno solo', () => {
+    const violations = validateHandEntries(
+      [entry('a', { cleanBurracos: 1, tablePoints: 10 }), entry('b')],
+      entities,
+    )
+    const violation = violations.find((v) => v.code === 'TABLE_POINTS_BELOW_BURRACOS')
+    expect(violation).toBeDefined()
+    expect(violation?.message).toContain('1 burraco vale almeno 35 punti di carte.')
   })
 })

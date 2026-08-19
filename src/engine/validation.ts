@@ -105,10 +105,12 @@ export function validateHandEntries(
 
     const burracos = totalBurracos(entry)
     if (burracos > 0 && entry.tablePoints < burracos * MIN_BURRACO_TABLE_POINTS) {
+      const noun = burracos === 1 ? 'burraco' : 'burrachi'
+      const verb = burracos === 1 ? 'vale' : 'valgono'
       violations.push({
         code: 'TABLE_POINTS_BELOW_BURRACOS',
         entityId: entry.entityId,
-        message: `${label}: ${burracos} burrachi valgono almeno ${
+        message: `${label}: ${burracos} ${noun} ${verb} almeno ${
           burracos * MIN_BURRACO_TABLE_POINTS
         } punti di carte. Controlla i punti in tavola.`,
         blocking: false,

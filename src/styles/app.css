@@ -67,13 +67,26 @@ h2 { font-size: 1.15rem; margin: 24px 0 12px; }
 .row--between { justify-content: space-between; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+/* Dentro le griglie i pulsanti sono affiancati, non impilati: annulla il
+   margine verticale di `.btn + .btn`, altrimenti ogni pulsante scende
+   a scaletta rispetto al precedente. */
+.grid-2 > .btn + .btn,
+.grid-3 > .btn + .btn {
+  margin-top: 0;
+}
 
 .muted { color: var(--text-muted); font-size: 0.9rem; }
+/* Un'etichetta `.muted` è spesso seguita da pulsanti o griglie senza margine
+   proprio: dai spazio a ciò che viene subito dopo, qualunque cosa sia. */
+.muted + * {
+  margin-top: 8px;
+}
 .score { font-variant-numeric: tabular-nums; font-weight: 700; }
 .score--big { font-size: 2rem; }
 
 .progress {
   height: 6px;
+  margin-top: 8px;
   border-radius: 3px;
   background: var(--surface-alt);
   overflow: hidden;
