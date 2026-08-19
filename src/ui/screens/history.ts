@@ -41,7 +41,7 @@ export const historyScreen: Screen = () => {
                     draw()
                   },
                 },
-                'Elimina davvero',
+                'Sì, elimina',
               ),
               el(
                 'button',

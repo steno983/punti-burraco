@@ -26,6 +26,9 @@ Obiettivo partita: 2005 punti.
 Per chiudere servono: pozzetto preso, almeno un burraco, nessuna carta in mano.
 L'app blocca il salvataggio di una chiusura che non rispetta queste condizioni.
 
+L'app non conta le carte: i punti di tavola e di mano si inseriscono già sommati,
+e la tabella qui sopra serve da promemoria per farlo.
+
 Nella partita a 3 si gioca uno contro due finché un giocatore raggiunge 1000
 punti; da lì in poi tutti contro tutti. Il punteggio della coppia si divide a
 metà, arrotondato per eccesso.

@@ -19,7 +19,13 @@ export function matchRoute(pattern: string, path: string): Record<string, string
   const params: Record<string, string> = {}
   for (const [i, part] of patternParts.entries()) {
     if (part.startsWith(':')) {
-      params[part.slice(1)] = decodeURIComponent(pathParts[i])
+      try {
+        params[part.slice(1)] = decodeURIComponent(pathParts[i])
+      } catch {
+        // Indirizzo malformato (per esempio incollato a metà): la rotta
+        // semplicemente non corrisponde, invece di lasciare la pagina bianca.
+        return null
+      }
     } else if (part !== pathParts[i]) {
       return null
     }

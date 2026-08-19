@@ -63,7 +63,7 @@ export const gameScreen: Screen = (params) => {
                     draw()
                   },
                 },
-                "Confermi l'eliminazione?",
+                'Sì, elimina',
               ),
               el(
                 'button',

@@ -57,18 +57,18 @@ describe('historyScreen', () => {
 
     // Primo tocco: la partita non è ancora stata rimossa e compare la conferma.
     expect(loadState().games.some((g) => g.id === 'g1')).toBe(true)
-    expect(findButton(container, 'Elimina davvero')).toBeTruthy()
+    expect(findButton(container, 'Sì, elimina')).toBeTruthy()
     expect(queryButton(container, 'Elimina')).toBeUndefined()
 
     // "Annulla" riporta allo stato iniziale senza eliminare nulla.
     findButton(container, 'Annulla').click()
     expect(loadState().games.some((g) => g.id === 'g1')).toBe(true)
-    expect(queryButton(container, 'Elimina davvero')).toBeUndefined()
+    expect(queryButton(container, 'Sì, elimina')).toBeUndefined()
     expect(findButton(container, 'Elimina')).toBeTruthy()
 
     // Solo il secondo tocco, sulla conferma, elimina davvero la partita.
     findButton(container, 'Elimina').click()
-    findButton(container, 'Elimina davvero').click()
+    findButton(container, 'Sì, elimina').click()
     expect(loadState().games.some((g) => g.id === 'g1')).toBe(false)
   })
 
@@ -80,7 +80,7 @@ describe('historyScreen', () => {
 
     findButton(findCard(container, 'Ann'), 'Elimina').click()
     // Dopo il redraw il riferimento alla card precedente è superato: va ricercata.
-    findButton(findCard(container, 'Ann'), 'Elimina davvero').click()
+    findButton(findCard(container, 'Ann'), 'Sì, elimina').click()
 
     const remaining = loadState().games
     expect(remaining.some((g) => g.id === 'g1')).toBe(false)
