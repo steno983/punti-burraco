@@ -9,6 +9,8 @@ export interface HandSummary {
   phaseChanged: boolean
   finished: boolean
   winnerLabel: string | null
+  /** Motivo per cui la smazzata non è stata conteggiata, nullo se è valida. */
+  issue: string | null
 }
 
 export function summarizeHand(game: Game, handId: string): HandSummary | null {
@@ -41,5 +43,6 @@ export function summarizeHand(game: Game, handId: string): HandSummary | null {
     phaseChanged,
     finished: progress.finished,
     winnerLabel: winner?.label ?? null,
+    issue: result.issue,
   }
 }

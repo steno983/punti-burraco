@@ -69,4 +69,12 @@ describe('summarizeHand', () => {
     expect(summary.finished).toBe(true)
     expect(summary.winnerLabel).toBe('Ann')
   })
+
+  it('segnala il motivo quando la smazzata non è stata conteggiata', () => {
+    const g = game(2, [hand('h1', [entry('p1', { closed: true }), entry('p2', { closed: true })])])
+    const summary = summarizeHand(g, 'h1')!
+    expect(summary.issue).toBe('In una smazzata può chiudere una sola parte.')
+    const ann = summary.rows.find((r) => r.accountId === 'p1')!
+    expect(ann.delta).toBe(0)
+  })
 })

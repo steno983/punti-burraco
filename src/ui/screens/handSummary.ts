@@ -1,3 +1,4 @@
+import { PHASE_2_THRESHOLD } from '../../engine/cards'
 import { summarizeHand } from '../../engine/summary'
 import { getGame } from '../../storage/repository'
 import { el } from '../dom'
@@ -26,7 +27,11 @@ export const handSummaryScreen: Screen = (params) => {
         el('span', {}, row.label),
         el('span', { class: 'score score--big' }, String(row.total)),
       ),
-      el('div', { class: 'muted' }, `${row.delta >= 0 ? '+' : ''}${row.delta} in questa smazzata`),
+      el(
+        'div',
+        { class: 'muted' },
+        summary.issue ? 'Non conteggiata in questa smazzata.' : `${row.delta >= 0 ? '+' : ''}${row.delta} in questa smazzata`,
+      ),
     ),
   )
 
@@ -34,11 +39,14 @@ export const handSummaryScreen: Screen = (params) => {
     'div',
     {},
     el('h1', {}, `Smazzata ${summary.index + 1}`),
+    summary.issue
+      ? el('div', { class: 'alert' }, `Questa smazzata non è stata conteggiata: ${summary.issue}`)
+      : null,
     summary.phaseChanged
       ? el(
           'div',
           { class: 'alert alert--info' },
-          'Superati i 1000 punti: dalla prossima smazzata si gioca tutti contro tutti.',
+          `Superati i ${PHASE_2_THRESHOLD} punti: dalla prossima smazzata si gioca tutti contro tutti.`,
         )
       : null,
     summary.finished
