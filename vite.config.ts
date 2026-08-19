@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: '/puntiBurraco/',
+  base: '/punti-burraco/',
   build: { target: 'es2022' },
 })

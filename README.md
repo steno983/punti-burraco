@@ -3,7 +3,7 @@
 Segnapunti per partite di burraco a 2, 3 o 4 giocatori. Funziona da telefono,
 si installa sulla schermata home e tiene le partite sul dispositivo.
 
-**App online:** https://steno983.github.io/puntiBurraco/
+**App online:** https://steno983.github.io/punti-burraco/
 
 ## Regole applicate
 
