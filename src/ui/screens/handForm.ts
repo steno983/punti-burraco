@@ -127,6 +127,10 @@ export const handFormScreen: Screen = (params) => {
       ? updateHand(game!, editing.id, input, appDeps)
       : addHand(game!, input, appDeps)
     upsertGame(updated)
+    // Se il dispositivo ha rifiutato il salvataggio l'avviso è già a schermo: si
+    // resta sul modulo, con i dati ancora compilati, invece di aprire un
+    // riepilogo che non rispecchia quel che si è appena inserito.
+    if (getGame(updated.id)?.updatedAt !== updated.updatedAt) return
     const savedHandId = editing ? editing.id : updated.hands[updated.hands.length - 1].id
     navigate(`/partita/${updated.id}/riepilogo/${savedHandId}`)
   }

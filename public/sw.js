@@ -7,6 +7,14 @@ const PRECACHE = []
 
 const CACHE_NAME = `punti-burraco-${BUILD_ID}`
 
+// I file serviti con un'intestazione `Vary` (per esempio `Vary: Origin`, che
+// GitHub Pages e il server di anteprima aggiungono) non verrebbero ritrovati in
+// cache quando la richiesta della pagina porta intestazioni diverse da quelle
+// del precaricamento: succede con lo script e il foglio di stile, che il tag
+// `crossorigin` fa chiedere con un `Origin`. Le voci sono identificate
+// dall'indirizzo, quindi confrontare solo quello è sia sufficiente sia corretto.
+const MATCH_OPTIONS = { ignoreVary: true }
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
@@ -43,14 +51,18 @@ self.addEventListener('fetch', (event) => {
           }
           return response
         })
-        .catch(() => caches.match(request).then((cached) => cached ?? caches.match(self.registration.scope))),
+        .catch(() =>
+          caches
+            .match(request, MATCH_OPTIONS)
+            .then((cached) => cached ?? caches.match(self.registration.scope, MATCH_OPTIONS)),
+        ),
     )
     return
   }
 
   // Risorse statiche: prima la cache, poi la rete.
   event.respondWith(
-    caches.match(request).then((cached) => {
+    caches.match(request, MATCH_OPTIONS).then((cached) => {
       if (cached) return cached
       return fetch(request).then((response) => {
         if (response.ok && new URL(request.url).origin === self.location.origin) {

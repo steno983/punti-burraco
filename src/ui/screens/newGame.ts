@@ -1,6 +1,6 @@
 import { createGame, type EngineDeps } from '../../engine/game'
 import type { Game, GameMode } from '../../engine/types'
-import { loadState, upsertGame, upsertPlayer } from '../../storage/repository'
+import { getGame, loadState, upsertGame, upsertPlayer } from '../../storage/repository'
 import { appDeps } from '../deps'
 import { el } from '../dom'
 import { navigate, type Screen } from '../router'
@@ -103,6 +103,9 @@ export const newGameScreen: Screen = () => {
     const playerIds = form.names.map((name) => upsertPlayer(name, appDeps.newId, appDeps.now).player.id)
     const game = buildGameFromForm(form, appDeps, playerIds)
     upsertGame(game)
+    // Se il dispositivo ha rifiutato il salvataggio l'avviso è già a schermo:
+    // restare qui evita di aprire una partita che non esiste.
+    if (!getGame(game.id)) return
     navigate(`/partita/${game.id}`)
   }
 

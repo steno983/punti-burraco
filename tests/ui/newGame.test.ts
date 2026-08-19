@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { buildGameFromForm, newGameScreen, suggestionNames, validateNewGameForm } from '../../src/ui/screens/newGame'
 import { saveState } from '../../src/storage/repository'
 import type { EngineDeps } from '../../src/engine/game'
@@ -150,5 +150,37 @@ describe('suggestionNames', () => {
       'elena',
       'Èlia',
     ])
+  })
+})
+
+describe('newGameScreen — salvataggio rifiutato dal dispositivo', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    window.location.hash = ''
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('non apre una partita che non è stata salvata', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('QuotaExceededError')
+    })
+
+    const container = newGameScreen({})
+    const inputs = Array.from(container.querySelectorAll('input'))
+    for (const [i, name] of ['Ann', 'Bob', 'Cid', 'Dan'].entries()) {
+      inputs[i].value = name
+      inputs[i].dispatchEvent(new Event('input'))
+    }
+
+    const start = Array.from(container.querySelectorAll('button')).find(
+      (b) => b.textContent === 'Inizia la partita',
+    )!
+    start.click()
+
+    // Nessuna navigazione: l'avviso di salvataggio impossibile è già a schermo.
+    expect(window.location.hash).toBe('')
   })
 })
